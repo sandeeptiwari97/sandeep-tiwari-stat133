@@ -1,0 +1,95 @@
+---
+title: "hw03-sandeep-tiwari"
+author: "Sandeep Tiwari"
+date: "10/6/2017"
+output: github_document
+---
+# Data Preparation
+```{r}
+library(readr) # importing data
+library(dplyr) # data wrangling
+library(ggplot2) # graphics
+```
+
+### Roster and Stats
+```{r}
+roster <- read.csv('../data/nba2017-roster.csv')
+stats <- read.csv('../data/nba2017-stats.csv')
+teams <- read.csv('../data/nba2017-teams.csv')
+```
+## Basic Rankings
+### Ranking according to salary
+```{r}
+dec_sal <- arrange(teams, desc(salary))
+ggplot(dec_sal, aes(reorder(team, salary), salary)) + geom_bar(position = "dodge", stat = 'summary', fun.y = "mean") + coord_flip() + labs(x = "Team", y = "Salary (in millions)", title = "NBA Teams ranked by Total Salary") + geom_hline(yintercept = mean(dec_sal$salary), lwd=2, col="red")
+```
+Here, we have ranked the teams according to the teams' total salaries. We can see that the Cleveland Cavaliers are the highest paid team in the NBA, where as the Philadelphia 76ers are the lowest paid.
+
+### Rankings according to total points
+```{r}
+dec_pts <- arrange(teams, desc(points))
+ggplot(dec_pts, aes(reorder(team, points), points)) + geom_bar(stat = 'identity') + coord_flip() + labs(x = "Team", y = "Total Points", title = "NBA Teams ranked by Total Points") + geom_hline(yintercept = mean(dec_pts$points), lwd=2, col="red")
+```
+Here, we have ranked the teams according to the teams' total points. We can see that the Golden State Warriors are the highest scoring team in the NBA, where as the Sacramento Kings are the lowest scoring
+
+
+### Rankings according to efficiency
+```{r}
+dec_eff <- arrange(teams, desc(efficiency))
+ggplot(dec_eff, aes(reorder(team, efficiency), efficiency)) + geom_bar(stat = 'identity') + coord_flip() + labs(x = "Team", y = "Total Efficiency", title = "NBA Teams ranked by Total Efficiency") + geom_hline(yintercept = mean(dec_eff$efficiency), lwd=2, col="red")
+```
+Here, we have ranked the teams according to the teams' total efficiencies. We can see that the Cleveland Cavaliers have the highest efficiency in the NBA, closely followed by the Warriors, where as the Orlando Magic have the lowest efficiency.
+
+
+# Principal Components Analysis (PCA)
+PCA of points3, points2, free_throws, off_rebounds, def_rebounds, assists, steals, blocks, turnovers, fouls
+```{r}
+pca <- prcomp(teams[, c("points3", "points2", "free_throws", "off_rebounds", "def_rebounds", "assists", "steals", "blocks", "turnovers", "fouls")], scale. = TRUE)
+pca
+```
+
+Creating a data frame with the eigenvalues
+```{r}
+eigs <- data.frame(
+  eigenvalue = round(pca$sdev ^ 2, 4)
+)
+eigs$prop <- round(eigs$eigenvalue / sum(eigs$eigenvalue), 4)
+eigs$cumprop <- round(cumsum(eigs$prop), 4)
+eigs
+```
+
+Using first two PCs to get a scatterplot of the teams
+```{r}
+teams$PC1 <- pca$x[, 1]
+teams$PC2 <- pca$x[, 2]
+ggplot(teams, aes(PC1, PC2)) + geom_point() + geom_text(aes(label=team)) + labs(title = "PCA plot (PC1 and PC2)")
+```
+
+## Index based on PC1
+```{r}
+z1 <- teams$PC1
+s1 <- 100 * ((z1 - min(z1)) / (max(z1) - min(z1)))
+teams$z1_rescaled <- s1
+dec_s1 <- arrange(teams, desc(s1))
+ggplot(dec_s1, aes(reorder(team, z1_rescaled), z1_rescaled)) + geom_bar(stat = "identity") + coord_flip() + labs(x = "Team", y = "First PC (scaled from 0 to 100)", title = "NBA Teams ranked by scaled PC1")
+```
+Here, we have ranked the teams by scaled PC1. The rescaled PC1 values are more meaningful, as they are rescaled to values between 0 and 100. We can see that the Golden State Warriors have the highest index in the NBA, where as the Sacramento Kings have the lowest index.
+
+# Comments and Reflections
+1. This isn't my first time working on a project with this sort of file structure, as I have done similar projects in some CS classes. 
+
+2. This wasn't my first time using relative paths. Relative paths are important as it makes code more portable and R has already set the project directory for you.
+
+3. This was my firs time using an R script. Honestly, I prefer the R markdown, because I like how the code is split into its own chunks, separate from the rest of the file text, and so it is easy to run one specific block of code.
+
+4. I found the principal components analysis a bit difficult. Also creating the horizontal bar charts in order was a bit tricky.
+
+5. Everything else seemed pretty straightforward.
+
+6. Nobody helped my complete this assignment.
+
+7. The most time consuming part was the principal components analysis
+
+8. Even though I found it a bit complicated, I found the PCA interesting in terms of how it can summarize variables without losing the true content of the data.
+
+

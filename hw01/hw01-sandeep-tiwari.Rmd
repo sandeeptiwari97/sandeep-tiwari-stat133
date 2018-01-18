@@ -1,0 +1,144 @@
+---
+title: "hw01-sandeep-tiwari"
+author: "Sandeep Tiwari"
+date: "9/21/2017"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+# load date file
+load("data/nba2017-salary-points.RData")
+
+# list the available objects
+ls()
+```
+
+### 1. A bid of data preprocessing
+
+## Change Salary from dollars to millions of dollars
+
+```{r}
+new_salary <- salary / 1000000
+new_salary
+```
+## Make experience an integer vector
+```{r}
+experience[experience == "R"] = 0
+int_experience <- as.integer(experience)
+int_experience
+```
+## Create more descriptive labels for positions
+```{r}
+position[position == "PG"] = "point_guard"
+position[position == "SG"] = "shoot_guard"
+position[position == "SF"] = "small_fwd"
+position[position == "PF"] = "power_fwd"
+position[position == "C"] = "center"
+new_position <- factor(position)
+new_position
+position_table <- table(new_position)
+position_table
+```
+
+### 2. Scatterplot of Points and Salary
+```{r}
+?par()
+plot(x = points, y = new_salary, xlab = "Points", ylab = "Salary (in millions)")
+```
+
+### 3. Correlation between Points and Salary
+```{r}
+n <- length(player)
+x_mean <- sum(points) / n
+y_mean <- sum(new_salary) / n
+x_var <- sum((points-x_mean)^2) / (n-1)
+y_var <- sum((new_salary-y_mean)^2) / (n-1)
+x_sd <- sd(points)
+y_sd <- sd(new_salary)
+xy_cov <- sum((points-x_mean) * (new_salary-y_mean)) / (n-1)
+xy_cor <- xy_cov / (x_sd * y_sd)
+```
+
+### 4. Simple Linear Regression
+```{r}
+slope <- xy_cor * (y_sd / x_sd)
+int <- y_mean - (slope * x_mean)
+y_hat <- int + (slope * points)
+```
+# Summary statistics of Y hat
+```{r}
+summary(y_hat)
+```
+# Regression Equation
+```{r}
+y_hat = int + slope * points
+```
+# Interpretation of slope coefficient b1 
+The slope coefficient describes how much the salary changes as the number of points scored changes
+
+# Interpretation of intercept term b0
+The intercept term is approximately how much someone earns if they score 0 points
+
+# Predicted salary for a player that scores:
+0 points
+```{r}
+y_hat[points == 0]
+```
+100 points
+```{r}
+y_hat[points == 100]
+```
+500 points
+```{r}
+int + slope * 500
+```
+1000 points
+```{r}
+int + slope * 1000
+```
+2000 points
+```{r}
+int + slope * 2000
+```
+
+### 5. Plotting the regression line
+```{r}
+plot1 = plot(x = points, y = new_salary, xlab = "Points", ylab = "Salary (in millions)")
+abline(int, slope, lwd = 2, col="blue")
+lines(lowess(points, new_salary), col=2, lwd=2)
+text(2300, 29, labels = c("lowess"), col="red")
+text(2300, 17, labels = c("regression"), col="blue")
+```
+
+### 6. Regression residuals and Coefficient of Determination R^2
+```{r}
+residuals <- new_salary - y_hat
+rss <- sum(residuals^2)
+tss <- sum((new_salary - y_mean)^2)
+determination <- 1 - (rss / tss)
+```
+
+### Exploring Position and Experience
+```{r}
+plot2 = plot(int_experience, new_salary)
+lines(lowess(int_experience, new_salary), col=2, lwd=2)
+```
+## 3D scatterplot
+```{r}
+#needed to comment this out because was unable to knit the document
+#scatterplot3d(x = points, y = int_experience, z = new_salary, xlab="Points", ylab="Years of Experience", zlab="Salary (in Millions)")
+```
+
+### Boxplot
+```{r}
+#?boxplot
+boxplot(new_salary~new_position, xlab="Position", ylab="Salary (in millions)")
+```
+From the scatterplots, it seems as though salary seems to peak after around 5-10 years of experience. Then there seems to be a downwards trend. From the boxplots, the general mean salaries are relatively similar for each position, but the center position has a larger range of salaries, while all the other positions have a few outliers.
+
+### 8. Comments and Reflections
+Sometimes figuring out what to input in the different plots to produce the desired graph was difficult, but most everything else was fairly straightforward. For the most part I was able to figure out what to do, but if I needed help, I consulted a friend, TA, or Google. I took about 2 hours to complete this assignment. The most time consuming part was making the graphs. For the most part, I felt like I learned everything this assignment intended to teach.

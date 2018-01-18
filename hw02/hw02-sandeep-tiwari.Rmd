@@ -1,0 +1,205 @@
+---
+title: "hw02-sandeep-tiwari"
+author: "Sandeep Tiwari"
+date: "9/29/2017"
+output: github_document
+---
+
+# 2. Import the data in R
+```{r}
+#install.packages("readr")
+library("readr")
+library("dplyr")
+library("ggplot2")
+```
+
+```{r}
+dat <- read.csv("data/nba2017-player-statistics.csv", 
+                colClasses = c("Player"="character", "Team"="character", "Experience"="character", "Position"="factor", "Salary"="double"))
+```
+
+```{r}
+nba <- read_csv("data/nba2017-player-statistics.csv",
+                col_types = cols(Player = col_character(), Team = col_character(), Experience = col_integer(), Position = col_factor(levels = c("PG", "SG", "SF", "PF", "C")), Salary = col_double()))
+```
+
+```{r}
+str(dat)
+str(nba)
+```
+
+# 3. Right after importing the data
+### Replacing all occurrences of "R" in Experience vector with 0 and making it an integer vector
+```{r}
+dat$Experience[dat$Experience=="R"] = 0
+dat$Experience = as.integer(dat$Experience)
+dat$Experience
+```
+
+# 4. Performance of players
+
+### Adding an EFF variable to our data frame
+Creating Missed_FG variable
+```{r}
+dat$Missed_FG <- dat$FGA - dat$FGM
+dat$Missed_FG
+```
+
+Creating Missed_FT variable
+```{r}
+dat$Missed_FT <- dat$FTA - dat$FTM
+dat$Missed_FT
+```
+
+Creating PTS variable
+```{r}
+dat$PTS <- dat$Points3*3 + dat$Points2*2 + dat$FTM
+dat$PTS
+```
+
+Creating REB variable
+```{r}
+dat$REB <- dat$DREB + dat$OREB
+dat$REB
+```
+
+Creating MPG variable
+```{r}
+dat$MPG <- dat$MIN / dat$GP
+dat$MPG
+```
+
+Creating EFF variable
+```{r}
+dat$EFF <- (dat$PTS + dat$REB + dat$AST + dat$STL + dat$BLK - dat$Missed_FG - dat$Missed_FT - dat$TO) / dat$GP
+```
+
+Summary statistics of EFF
+```{r}
+summary(dat$EFF)
+ggplot(data = dat, aes(EFF)) + geom_histogram(binwidth = 5)
+```
+
+Top-10 players by EFF in decreasing order
+```{r}
+slice(arrange(dat, desc(EFF)), 1:10)
+```
+
+Names of players with negative EFF
+```{r}
+negEFF <- filter(dat, EFF<0)
+negEFF[, "Player"]
+```
+Correlation between EFF and PTS
+```{r}
+cor1 <- cor(dat$EFF, dat$PTS)
+cor1
+```
+
+Correlation between EFF and REB
+```{r}
+cor2 <- cor(dat$EFF, dat$REB)
+cor2
+```
+
+Correlation between EFF and AST
+```{r}
+cor3 <- cor(dat$EFF, dat$AST)
+cor3
+```
+
+Correlation between EFF and STL
+```{r}
+cor4 <- cor(dat$EFF, dat$STL)
+cor4
+```
+
+Correlation between EFF and BLK
+```{r}
+cor5 <- cor(dat$EFF, dat$BLK)
+cor5
+```
+
+Correlation between EFF and Missed_FG
+```{r}
+cor6 <- -cor(dat$EFF, dat$Missed_FG)
+cor6
+```
+
+Correlation between EFF and Missed_FT
+```{r}
+cor7 <- -cor(dat$EFF, dat$Missed_FT)
+cor7
+```
+
+Correlation between EFF and TO
+```{r}
+cor8 <- -cor(dat$EFF, dat$TO)
+cor8
+```
+
+```{r}
+correlations <- c(cor1, cor2, cor3, cor4, cor5, cor6, cor7, cor8)
+cols <- c("coral1", "grey")[(correlations > 0) + 1]
+barplot(correlations, main = "Correlations between Player Stats and EFF", names.arg = c("PTS", "REB", "AST", "STL", "BLK", "Missed_FG", "Missed_FT", "TO"), cex.names = 0.4, col = cols)
+```
+
+
+# 5. Efficiency and Salary
+
+```{r}
+eff_plot = plot(x = dat$EFF, y = dat$Salary, main="Scatterplot Example", xlab="Efficiency", ylab="Salary")
+lines(lowess(dat$EFF, dat$Salary), col=2, lwd=2)
+
+```
+
+Correlation between efficiency and salary
+```{r}
+cor(dat$EFF, dat$Salary)
+```
+We can say that efficiency and salary are positively correlated. So the more efficient a player is, the more he is paid.
+
+Creating the player2 data frame
+```{r}
+player2 <- filter(dat, MPG>20)
+player2
+```
+
+Creating the player2 scatterplot of efficiency vs salary
+```{r}
+plot(player2$EFF, player2$Salary)
+lines(lowess(player2$EFF, player2$Salary), col=2, lwd=2)
+```
+
+Correlation for players who play more than 20 minutes
+```{r}
+cor(player2$EFF, player2$Salary)
+```
+
+Looking at the scatterplot and the correlation coefficient, we can conclude that there is a weaker correlation between efficiency and salary, while it is still positive.
+
+# 6. Comments and Reflection
+
+### 1. What things were hard, even though you saw them in class/lab?
+For some reason, making the bar chart was difficult because even though the bars were the correct heights, I had a hard time getting them to display in decreasing order.
+
+### 2. What was easy(-ish) even though we haven't done it in class/lab?
+Making the histograms and some of the plots were fairly easy
+
+### 3. Did you need help to complete the assignment? If so, what kind of help?
+I needed a little bit of help on question 4. So I ended up working with a friend for that question
+
+### 4. How much time did it take to complete this HW?
+It took me about 2 hours
+
+### 5. What was the most time consuming part?
+The most time consuming part was the barchart for the correlations for the variables of the EFF formula.
+
+### 6. Was there anything that you did not understand? or fuly grasped?
+I am still figuring how to fully use ggplot functions
+
+### 7. Was there anything frustrating in particular?
+The barchart was the most frustrating part for me in this assignment and there wasn't much help on Piazza
+
+### 8. Was there anything exciting? Something that you feel proud of?
+Not really
