@@ -1,0 +1,12 @@
+---
+title: Lab 10: Basics of strings manipulations
+author: Sandeep Tiwari
+date: 11/3/17
+output: html_document
+---
+
+This is the first line
+A 2nd line
+
+
+The quick brown fox jumps over the lazy dog
