@@ -1,0 +1,11 @@
+[1] minimum  : 3.0000
+[1] percent10: 10.0000
+[1] quartile1: 11.0000
+[1] median   : 12.0000
+[1] mean     : 11.4010
+[1] quartile3: 12.0000
+[1] percent90: 12.0000
+[1] maximum  : 12.0000
+[1] range    : 9.0000
+[1] stdev    : 1.3800
+[1] missing  : 0.0000
